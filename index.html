@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Metronome</title>
+
+        <style>
+            #bpm {
+                margin: auto;
+                font-size: 500%;
+                text-align: center;
+                padding-top: 10%;
+                padding-bottom: 2%;
+            }
+
+            #startstop {
+                margin: auto;
+                width: 50%;
+            }
+
+            #start,
+            #stop {
+                width: 50%;
+                margin: 5px 25% 5px 25%;
+            }
+
+            #temporange {
+                -webkit-appearance: none;
+                width: 50%;
+                height: 15px;
+                margin-left: 25%;
+                margin-right: 25%;
+                margin-top: 20px;
+                border-radius: 5px;
+                background: #d3d3d3;
+                outline: none;
+                opacity: 0.7;
+                -webkit-transition: 0.2s;
+                transition: opacity 0.2s;
+            }
+
+            #temporange::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 25px;
+                height: 25px;
+                background: #097be6;
+                cursor: pointer;
+                height: 25px;
+                border-radius: 50%;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="bpm">
+            <button id="tempoup" onclick="tempoChange(-1)">-</button>
+            <span id="num">80</span> bpm
+            <button id="tempodown" onclick="tempoChange(1)">+</button>
+        </div>
+        <div id="startstop">
+            <button id="start" onclick="startMetronome()">Start</button>
+            <button id="stop" onclick="stopMetronome()">Stop</button>
+        </div>
+
+        <div id="temposlide">
+            <input type="range" min="40" max="400" value="80" id="temporange" />
+        </div>
+
+        <script>
+            let osc;
+            let audioContext;
+
+            window.onclick = () => {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                osc = audioContext.createOscillator();
+
+                osc.frequency.value = 400;
+
+                osc.start();
+            };
+
+            const slider = document.getElementById("temporange");
+            const elem = document.getElementById("num");
+
+            let metronomeInterval;
+            function startMetronome() {
+                const bpm = parseInt(elem.innerHTML);
+                metronomeInterval = setInterval(() => {
+                    osc.connect(audioContext.destination);
+                    setTimeout(() => osc.disconnect(), 40);
+                }, 60000 / bpm);
+            }
+
+            function stopMetronome() {
+                if (!metronomeInterval) return;
+                clearInterval(metronomeInterval);
+                metronomeInterval = null;
+            }
+
+            function tempoChange(n) {
+                if ((parseInt(elem.innerHTML) <= 40 && n < 0) || (parseInt(elem.innerHTML) >= 400 && n > 0)) return;
+                elem.innerHTML = `${parseInt(elem.innerHTML) + n}`;
+
+                slider.value = parseInt(elem.innerHTML) + n;
+
+                if (metronomeInterval != null) {
+                    stopMetronome();
+                    startMetronome();
+                }
+            }
+
+            slider.oninput = function () {
+                elem.innerHTML = this.value;
+                tempoChange(0);
+            };
+        </script>
+    </body>
+</html>
